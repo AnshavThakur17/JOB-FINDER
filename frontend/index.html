@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Job Finder — Premium</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Animation & micro-interaction styles (keeps existing colors) -->
+  <style>
+    /* Entrance for hero card */
+    .hero-card {
+      transform-origin: top center;
+      will-change: transform, opacity;
+      animation: hero-entrance 720ms cubic-bezier(.2,.9,.2,1) both;
+    }
+    @keyframes hero-entrance {
+      from { opacity: 0; transform: translateY(18px) scale(.995); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* staggered text reveal */
+    .hero-card .stagger {
+      opacity: 0;
+      transform: translateY(8px);
+      animation: text-in 520ms cubic-bezier(.2,.9,.2,1) forwards;
+    }
+    .hero-card .stagger.delay-1 { animation-delay: 120ms; }
+    .hero-card .stagger.delay-2 { animation-delay: 240ms; }
+    .hero-card .stagger.delay-3 { animation-delay: 360ms; }
+
+    @keyframes text-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating animation for hero illustration */
+    @keyframes floaty {
+      0%   { transform: translateY(0px); }
+      50%  { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+    .hero-image-illustration {
+      transition: transform .25s ease, box-shadow .25s;
+      will-change: transform;
+    }
+    .hero-image-illustration.is-floating {
+      animation: floaty 6s ease-in-out infinite;
+    }
+
+    /* buttons micro-interactions (no color changes) */
+    .btn.ripple:active { transform: translateY(1px) scale(.998); }
+    .btn-primary { transition: box-shadow .18s, transform .12s; }
+    .btn-primary:focus, .btn-primary:hover { box-shadow: 0 8px 22px rgba(16, 24, 40, 0.08); transform: translateY(-2px); }
+    .btn-outline-primary:focus, .btn-outline-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,24,40,0.04); }
+
+    /* fade for search card */
+    .search-glass { opacity: 0; transform: translateY(10px); animation: search-entrance 600ms 420ms cubic-bezier(.2,.9,.2,1) forwards; }
+    @keyframes search-entrance { to { opacity: 1; transform: translateY(0); } }
+
+    /* reduce motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      .hero-card, .stagger, .hero-image-illustration, .search-glass { animation: none !important; transform: none !important; }
+    }
+
+    /* tiny improvement to tip text */
+    .hero-tip { color: rgba(17,24,39,0.65); font-size: .9rem; }
+
+    /* improve focus outlines for keyboard users */
+    .btn:focus { outline: 3px solid rgba(59,130,246,0.14); outline-offset: 2px; }
+
+    /* make headline slightly more dramatic on large screens (keeps colors) */
+    @media (min-width:1200px){
+      .hero-card .display-5 { font-size: 2.8rem; line-height:1.02; }
+    }
+
+    /* ---------- Robust carousel CSS (Option B: Large) ---------- */
+    .hero-carousel { border-radius:12px; overflow:visible; padding:6px 0; display:flex; align-items:center; justify-content:center; background:transparent; }
+
+    /* clipped viewport so slides do not peek through */
+    .hero-carousel .carousel-inner {
+      width: 100%;
+      max-width: 720px;   /* Option B width */
+      height: 440px;      /* Option B height */
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(12,18,40,0.06);
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.88));
+      position: relative; /* important for absolute children */
+    }
+
+    /* Use absolute stacking for items; Bootstrap toggles .active */
+    .hero-carousel .carousel-item {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: opacity .45s ease, transform .45s ease;
+      opacity: 0;
+      pointer-events: none;
+      display: block;
+      transform: translateZ(0);
+    }
+    .hero-carousel .carousel-item.active {
+      position: relative;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* image fills the slide area */
+    .hero-carousel img { display:block; width:100%; height:100%; object-fit:cover; object-position:center; border-radius:10px; }
+
+    /* indicators and controls */
+    .hero-carousel .carousel-indicators { bottom: 10px; }
+    .hero-carousel .carousel-indicators [data-bs-target] { width:10px; height:10px; border-radius:50%; }
+    .carousel-control-prev, .carousel-control-next {
+      width:44px; height:44px; border-radius:10px;
+      background: rgba(255,255,255,0.95);
+      display:flex; align-items:center; justify-content:center;
+      box-shadow: 0 8px 24px rgba(12,18,40,0.06);
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* responsive sizes (keeps layout balanced) */
+    @media (max-width:1199px){ .hero-carousel .carousel-inner{ max-width:640px; height:420px; } }
+    @media (max-width:991px){ .hero-carousel .carousel-inner{ max-width:520px; height:360px; } }
+    @media (max-width:767px){ .hero-carousel .carousel-inner{ max-width:360px; height:220px; } }
+
+    /* if user prefers reduced motion, disable animations */
+    @media (prefers-reduced-motion: reduce){
+      .hero-carousel .carousel-item, .hero-carousel img { transition: none !important; animation: none !important; }
+    }
+    /* ----------------------------------------------------------- */
+  </style>
+</head>
+<body>
+  <div id="bg-anim" aria-hidden="true"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-dark nav-glass shadow-sm">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center gap-2" href="#home">
+        <div class="brand-box" aria-hidden="true">JF</div>
+        <span class="brand-text">Job Finder</span>
+      </a>
+
+      <div class="ms-auto d-flex gap-2 align-items-center" id="auth-area" aria-live="polite">
+        <button class="btn btn-sm btn-outline-light ripple" id="nav-login" data-mode="login" aria-label="Login">Login</button>
+        <button class="btn btn-sm btn-light ripple" id="nav-register" data-mode="register" aria-label="Register">Register</button>
+        <button class="btn btn-sm btn-light ripple" id="open-apps" aria-label="Open applications">Applications</button>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero container-lg" id="home">
+    <div class="hero-card glass p-4 shadow-lg" role="banner" aria-hidden="false">
+      <div class="row align-items-center">
+        <!-- text column kept as requested -->
+        <div class="col-lg-6">
+          <!-- headline -->
+          <h1 class="display-5 fw-extrabold stagger delay-1">Find the perfect role. Hire the perfect talent.</h1>
+
+          <!-- subtitle — revised -->
+          <p class="lead text-muted stagger delay-2">Discover thoughtful matches — clear listings, instant notifications, and a frictionless application experience for both candidates and hiring teams.</p>
+
+          <!-- CTA -->
+          <div class="d-flex gap-2 mt-3 stagger delay-3" role="group" aria-label="Primary actions">
+            <button class="btn btn-primary btn-lg ripple" id="cta-explore" type="button">Explore Jobs</button>
+            <button class="btn btn-outline-primary btn-lg ripple" id="cta-post" data-bs-toggle="modal" data-bs-target="#postJobModal" type="button">Post a Job</button>
+          </div>
+
+          <!-- tip text updated -->
+          <div class="mt-4 small hero-tip" aria-live="polite">Tip: When posting, list the core skills and a short responsibilities summary — that helps us serve better candidate matches faster.</div>
+        </div>
+
+        <!-- image column preserved (col-lg-6 to give more room) -->
+        <div class="col-lg-6 d-none d-lg-block text-center" aria-hidden="true">
+          <div class="floating-illustration" aria-hidden="true">
+            <!-- START: Bootstrap carousel (slideshow) -->
+            <div id="heroCarousel" class="carousel slide hero-carousel" data-bs-ride="false" data-bs-interval="4500" data-bs-pause="hover" aria-label="Hero slideshow">
+              <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="2" aria-label="Slide 3"></button>
+              </div>
+
+              <div class="carousel-inner" role="listbox">
+                <!-- img srcs left empty; loader script will pick a valid candidate path for each -->
+                <div class="carousel-item active">
+                  <img
+                    data-candidates='["assets/hero.jpg","assets/hero.png","assets/hero.webp","hero.jpg","/assets/hero.jpg","/frontend/assets/hero.jpg","../frontend/assets/hero.jpg"]'
+                    data-fallback-svg="true"
+                    alt="Illustration: job search and candidate magnifier"
+                    class="hero-image-illustration rounded-3 shadow-sm"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+
+                <div class="carousel-item">
+                  <img
+                    data-candidates='["assets/hero2.jpg","assets/hero2.png","assets/hero2.webp","hero2.jpg","/assets/hero2.jpg","/frontend/assets/hero2.jpg","../frontend/assets/hero2.jpg"]'
+                    data-fallback-svg="true"
+                    alt="Illustration: team hiring and collaboration"
+                    class="hero-image-illustration rounded-3 shadow-sm"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+
+                <div class="carousel-item">
+                  <img
+                    data-candidates='["assets/hero3.jpg","assets/hero3.png","assets/hero3.webp","hero3.jpg","/assets/hero3.jpg","/frontend/assets/hero3.jpg","../frontend/assets/hero3.jpg"]'
+                    data-fallback-svg="true"
+                    alt="Illustration: candidate profile and search"
+                    class="hero-image-illustration rounded-3 shadow-sm"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+              </div>
+
+              <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev" aria-label="Previous slide">
+                <span class="visually-hidden">Previous</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M15 18l-6-6 6-6" stroke="#0b1220" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+
+              <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next" aria-label="Next slide">
+                <span class="visually-hidden">Next</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 6l6 6-6 6" stroke="#0b1220" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+            </div>
+            <!-- END: carousel -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container-lg my-5">
+    <div class="row g-4">
+      <div class="col-12">
+        <div class="card search-glass p-3 d-flex align-items-center gap-3 flex-wrap" role="search">
+          <input id="search-q" class="form-control form-control-lg flex-fill" placeholder="Search jobs by title or company..." aria-label="Search jobs" />
+          <input id="search-skill" class="form-control form-control-lg w-25" placeholder="Filter by skill e.g. react" aria-label="Filter by skill" />
+          <div class="d-flex gap-2">
+            <button id="search-btn" class="btn btn-primary ripple" type="button">Search</button>
+            <button id="clear-btn" class="btn btn-outline-secondary ripple" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-8">
+        <h4 class="mb-3">Jobs</h4>
+        <div id="jobs" class="row g-3" aria-live="polite"></div>
+
+        <div id="skeleton" class="mt-3" aria-hidden="true"></div>
+        <div id="no-jobs" class="text-center text-muted py-4 d-none">No jobs found. Post a job to get started.</div>
+      </div>
+
+      <!-- RIGHT SIDEBAR (Profile + Trending Skills) -->
+      <aside class="col-lg-4">
+        <div class="card p-3 mb-3 glass">
+          <!-- Profile for logged-in users -->
+          <div id="profile-content" class="d-none" aria-hidden="true">
+            <div class="d-flex align-items-center gap-3">
+              <div class="avatar" id="profile-avatar" aria-hidden="true">JD</div>
+              <div>
+                <div id="profile-name" class="fw-bold">User</div>
+                <div id="profile-role" class="small text-muted">Role</div>
+              </div>
+            </div>
+
+            <p id="profile-bio" class="mt-3 small text-muted">Your bio appears here.</p>
+
+            <div class="d-grid gap-2">
+              <!-- Edit Profile button included so user always sees it when logged in -->
+              <button id="edit-profile-btn" class="btn btn-outline-primary ripple" type="button">Edit Profile</button>
+              <button id="logout" class="btn btn-outline-danger ripple" type="button">Logout</button>
+            </div>
+          </div>
+
+          <!-- Guest / not-logged-in view -->
+          <div id="guest-content">
+            <h6>Welcome</h6>
+            <p class="small text-muted mb-3">Login or register to post jobs or apply.</p>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary btn-sm w-50 ripple open-auth" data-mode="login" type="button">Login</button>
+              <button class="btn btn-outline-primary btn-sm w-50 ripple open-auth" data-mode="register" type="button">Register</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-3 glass">
+          <h6>Trending Skills</h6>
+          <div class="d-flex flex-wrap gap-2 mt-2" id="skill-tags" aria-label="Trending skills"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- AUTH modal -->
+  <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 id="authTitle" class="modal-title">Login</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="authForm" onsubmit="return false;">
+            <div class="mb-3 d-none" id="reg-name-wrap">
+              <label class="form-label small">Full name</label>
+              <input id="reg-name" class="form-control" placeholder="Your name" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Email</label>
+              <input id="auth-email" class="form-control" placeholder="name@example.com" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Password</label>
+              <input id="auth-pass" type="password" class="form-control" placeholder="Password" />
+            </div>
+            <div class="mb-3 d-none" id="reg-role-wrap">
+              <label class="form-label small">I am a</label>
+              <select id="reg-role" class="form-select">
+                <option value="candidate">Candidate</option>
+                <option value="company">Company</option>
+              </select>
+            </div>
+            <div class="d-grid"><button class="btn btn-primary ripple" id="authSubmit" type="button">Login</button></div>
+            <div class="text-center mt-3 small">
+              <a href="#" id="toggle-auth">Don't have an account? Register</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST JOB modal -->
+  <div class="modal fade" id="postJobModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Post a New Job</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3"><label class="form-label small">Title</label><input id="job-title" class="form-control" /></div>
+          <div class="mb-3"><label class="form-label small">Location</label><input id="job-location" class="form-control" /></div>
+          <div class="mb-3"><label class="form-label small">Skills</label><input id="job-skills" class="form-control" placeholder="comma separated" /></div>
+          <div class="mb-3"><label class="form-label small">Description</label><textarea id="job-desc" class="form-control" rows="4"></textarea></div>
+          <div class="d-grid"><button id="post-job-btn" class="btn btn-primary ripple" type="button">Post Job</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLY modal -->
+  <div class="modal fade" id="applyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Apply for Job</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="apply-job-info" class="small text-muted mb-2"></div>
+          <textarea id="apply-message" class="form-control mb-3" rows="4" placeholder="Message"></textarea>
+          <div class="d-grid"><button id="apply-submit" class="btn btn-primary ripple" type="button">Send Application</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATIONS / NOTIFICATIONS modal -->
+  <div class="modal fade" id="applicationsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Applications & Notifications</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div id="apps-container" class="d-flex flex-column gap-3"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal" type="button">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE modal -->
+  <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content rounded-3">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Profile</h5>
+          <button class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="edit-profile-form" onsubmit="return false;">
+            <div class="mb-3">
+              <label class="form-label small">Full name</label>
+              <input id="edit-name" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Bio</label>
+              <textarea id="edit-bio" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Skills (comma separated)</label>
+              <input id="edit-skills" class="form-control" />
+            </div>
+            <div class="mb-3 d-none" id="company-name-wrap">
+              <label class="form-label small">Company Name</label>
+              <input id="edit-company-name" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Upload Resume (PDF/DOC)</label>
+              <input id="edit-resume" type="file" accept=".pdf,.doc,.docx" class="form-control" />
+              <div id="current-resume" class="small text-muted mt-2"></div>
+            </div>
+            <div class="d-grid"><button id="save-profile-btn" type="button" class="btn btn-primary ripple">Save Profile</button></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="confetti-canvas" style="position:fixed;left:0;top:0;pointer-events:none;z-index:20000"></canvas>
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:12000"><div id="toast-area" aria-live="polite"></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- robust hero image loader & carousel init (keeps previous loader logic) -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const carouselEl = document.getElementById('heroCarousel');
+    if (!carouselEl) return;
+
+    // Try each candidate url sequentially and resolve the first that loads.
+    function findFirstValidUrl(candidates) {
+      return new Promise((resolve) => {
+        let idx = 0;
+        function tryOne() {
+          if (idx >= candidates.length) {
+            resolve(null);
+            return;
+          }
+          const url = candidates[idx++];
+          if (!url || url.trim() === '') return tryOne();
+
+          const tester = new Image();
+          tester.onload = () => resolve(url);
+          tester.onerror = () => tryOne();
+          tester.src = url;
+        }
+        tryOne();
+      });
+    }
+
+    function fallbackSVGDataURI(label) {
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="900" height="400" viewBox="0 0 900 400" preserveAspectRatio="xMidYMid meet">
+          <rect width="100%" height="100%" fill="#f7fbff" rx="8" />
+          <g transform="translate(40,40)">
+            <rect x="0" y="0" width="820" height="320" fill="#ffffff" rx="8" stroke="#e6eefc" />
+            <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#7a8da6" font-size="20" font-family="Inter, Arial, sans-serif">
+              ${label}
+            </text>
+          </g>
+        </svg>`;
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    const imgs = Array.from(carouselEl.querySelectorAll('img[data-candidates]'));
+
+    const loadTasks = imgs.map(img => {
+      let candidates;
+      try {
+        candidates = JSON.parse(img.getAttribute('data-candidates'));
+      } catch (e) {
+        candidates = [];
+      }
+      const currentSrc = img.getAttribute('src');
+      if (currentSrc) candidates.unshift(currentSrc);
+
+      return findFirstValidUrl(candidates).then(validUrl => {
+        if (validUrl) {
+          img.src = validUrl;
+          console.info('Hero loader: using', validUrl);
+        } else {
+          img.src = fallbackSVGDataURI('Illustration missing — please place hero images in "assets/" or update paths');
+          console.warn('Hero loader: no candidate image found for', img, '- using SVG fallback.');
+        }
+        return new Promise(resolve => {
+          const onFinish = () => { img.removeEventListener('load', onFinish); img.removeEventListener('error', onFinish); resolve(); };
+          img.addEventListener('load', onFinish);
+          img.addEventListener('error', onFinish);
+          if (img.complete) resolve();
+        });
+      });
+    });
+
+    Promise.all(loadTasks).then(() => {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const bsCarousel = bootstrap.Carousel.getOrCreateInstance(carouselEl, {
+        interval: prefersReduced ? false : 4500,
+        pause: 'hover',
+        ride: false,
+        wrap: true
+      });
+
+      
+      void carouselEl.offsetWidth;
+
+      if (!prefersReduced) bsCarousel.cycle();
+
+      carouselEl.addEventListener('focusin', () => { if (!prefersReduced) bsCarousel.pause(); });
+      carouselEl.addEventListener('focusout', () => { if (!prefersReduced) bsCarousel.cycle(); });
+
+      carouselEl.querySelectorAll('img').forEach(img => console.log('Hero final src:', img.src));
+    }).catch(err => {
+      console.error('Hero loader: unexpected error', err);
+    });
+  });
+  </script>
+
+  <!-- load app.js once, at the end -->
+  <script src="app.js"></script>
+</body>
+</html>
