@@ -5,7 +5,8 @@
    - Edit Profile modal + resume upload (PUT /api/users/me with FormData)
 */
 
-const API = 'https://job-finder-357d.onrender.com/api';
+const API = '/api';
+
 
 
 /* ------------------------------
