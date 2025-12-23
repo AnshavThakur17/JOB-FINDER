@@ -12,11 +12,14 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// simple send function
+// reusable send function
 async function sendMail({ to, subject, text, html }) {
   const mail = {
     from: `"Job Finder" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-    to, subject, text, html
+    to,
+    subject,
+    text,
+    html
   };
   return transporter.sendMail(mail);
 }
