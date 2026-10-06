@@ -1,6 +1,7 @@
-# Job Finder (Demo)
+# Job Finder
+Live Link- https://job-finder-357d.onrender.com/
 
-This is a minimal Job Finder project (backend + frontend) built with Node.js, Express, MongoDB (Mongoose), and a vanilla JS frontend.
+This is a  Job Finder project (backend + frontend) built with Node.js, Express, MongoDB (Mongoose), and a vanilla JS frontend.
 
 ## How to run
 
